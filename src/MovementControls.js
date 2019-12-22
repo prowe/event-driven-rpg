@@ -4,8 +4,6 @@ import styles from './MovementControls.module.css';
 import CurrentPlayerContext from './CurrentPlayerContext';
 import {useEventBus} from './EventContext';
 
-
-
 export default function MovementControls() {
     const {subject, broadcastEvent} = useEventBus();
     const {player, setPlayer} = useContext(CurrentPlayerContext);

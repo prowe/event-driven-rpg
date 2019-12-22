@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import MovementControls from './MovementControls';
 import CurrentPlayerContext from './CurrentPlayerContext';
 import {EventBusProvider} from './EventContext';
-
+import Timeline from './Timeline';
 
 function GameClient({playerId}) {
   const [player, setPlayer] = useState({
@@ -15,6 +15,7 @@ function GameClient({playerId}) {
 
   return (
     <CurrentPlayerContext.Provider value={{player, setPlayer}}>
+      <Timeline />
       <MovementControls />
     </CurrentPlayerContext.Provider>
   );
@@ -24,7 +25,6 @@ function App() {
   return (
     <div className="App">
       <EventBusProvider>
-        <GameClient playerId="1" />
         <GameClient playerId="1" />
         <GameClient playerId="2" />
       </EventBusProvider>

@@ -1,0 +1,10 @@
+
+.timeline {
+    overflow-x: scroll;
+    height: 12rem;
+    border: thin solid black;
+}
+
+.timeline li {
+    white-space: nowrap;
+}
