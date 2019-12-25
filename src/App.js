@@ -3,6 +3,7 @@ import MovementControls from './MovementControls';
 import CurrentPlayerContext from './CurrentPlayerContext';
 import {EventBusProvider} from './EventContext';
 import Timeline from './Timeline';
+import Nearby from './Nearby';
 
 function GameClient({playerId}) {
   const [player, setPlayer] = useState({
@@ -15,6 +16,7 @@ function GameClient({playerId}) {
 
   return (
     <CurrentPlayerContext.Provider value={{player, setPlayer}}>
+      <Nearby />
       <Timeline />
       <MovementControls />
     </CurrentPlayerContext.Provider>
