@@ -1,34 +1,29 @@
 import React, { useState } from 'react';
-import MovementControls from './MovementControls';
-import CurrentPlayerContext from './CurrentPlayerContext';
 import {EventBusProvider} from './EventContext';
 import Timeline from './Timeline';
-import Nearby from './Nearby';
-
-function GameClient({playerId}) {
-  const [player, setPlayer] = useState({
-    id: playerId,
-    location: {
-      x: 0,
-      y: 0
-    }
-  });
-
-  return (
-    <CurrentPlayerContext.Provider value={{player, setPlayer}}>
-      <Nearby />
-      <Timeline />
-      <MovementControls />
-    </CurrentPlayerContext.Provider>
-  );
-}
+import GameClient from './GameClient';
+import Chance from 'chance';
+import shortid from 'shortid';
+const chance = new Chance();
 
 function App() {
+  const [players, setPlayers] = useState([]);
+
+  function addPlayer() {
+    const newPlayer = {
+      id: shortid.generate(),
+      name: chance.first()
+    };
+
+    setPlayers((currentPlayers) => [...currentPlayers, newPlayer]);
+  }
+
   return (
     <div className="App">
       <EventBusProvider>
-        <GameClient playerId="1" />
-        <GameClient playerId="2" />
+        <Timeline />
+        <button onClick={addPlayer}>Add Player</button>
+        {players.map(player => <GameClient key={player.id} player={player} />)}
       </EventBusProvider>
     </div>
   );
