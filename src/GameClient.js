@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {useEventBus} from './EventContext';
+import Exits from './Exits';
 
 export default function GameClient({player}) {
     const {broadcastEvent} = useEventBus();
@@ -18,6 +19,7 @@ export default function GameClient({player}) {
     return (
         <div>
             <h2>{player.name} ({player.id})</h2>
+            <Exits player={player} />
         </div>
     );
 }
