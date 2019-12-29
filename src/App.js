@@ -4,6 +4,7 @@ import Timeline from './Timeline';
 import GameClient from './GameClient';
 import Chance from 'chance';
 import shortid from 'shortid';
+import AreaController from './AreaController';
 const chance = new Chance();
 
 function App() {
@@ -22,6 +23,8 @@ function App() {
     <div className="App">
       <EventBusProvider>
         <Timeline />
+        <AreaController />
+
         <button onClick={addPlayer}>Add Player</button>
         {players.map(player => <GameClient key={player.id} player={player} />)}
       </EventBusProvider>
