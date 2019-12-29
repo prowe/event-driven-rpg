@@ -1,57 +1,63 @@
-import React, { useEffect, useContext, useReducer } from 'react';
-import CurrentPlayerContext from './CurrentPlayerContext';
+import React, { useEffect, useContext, useReducer, useState } from 'react';
 import {useEventBus} from './EventContext';
 import {filter} from 'rxjs/operators';
 
-function calculateDelta(a, b) {
-    return {
-        deltaX: a.x - b.x,
-        deltaY: a.y - b.y
-    };
-}
 
-function isMovementEvent(event) {
-    return event.name === 'character-moved';
-}
-
-export default function Nearby() {
-    const {subject} = useEventBus();
-    const {player} = useContext(CurrentPlayerContext);
-
-    function nearbyPlayerReducer(nearby, event) {
-        const nearbyEntry = {
-            ...event.actor,
-            ...event.newLocation
-        };
-
-        nearby[nearbyEntry.id] = nearbyEntry;
-        const currentPlayerLocation = nearby[player.id];
-
-        return Object.entries(nearby)
-            .filter(([key, value]) => {
-                if (!currentPlayerLocation) {
-                    return true;
+export default function Nearby({player}) {
+    function nearbyEventReducer(currentState, event) {
+        const {actor, areaId, name} = event;
+        if (actor.id === player.id) {
+            if (currentState.currentAreaId !== event.areaId) {
+                return {
+                    areaId,
+                    nearby: {}
+                };
+            }
+        } else {
+            if (currentState.areaId === areaId) {
+                if (name === 'entered-area') {
+                    return {
+                        areaId,
+                        nearby: {
+                            ...currentState.nearby,
+                            [actor.id]: actor
+                        }
+                    };
                 }
-                const delta = calculateDelta(currentPlayerLocation, value);
-                return Math.abs(delta.deltaX) <= 3 && Math.abs(delta.deltaY) <=2;
-            })
-            .reduce((newNearby, [key, value]) => {
-                newNearby[key] = value;
-                return newNearby;
-            }, {});
+                if (name === 'exited-area') {
+                    const nearby = currentState.nearby;
+                    delete nearby[actor.id];
+                    return {
+                        areaId,
+                        nearby
+                    };
+                }
+            }
+        }
+
+        return currentState;
     }
 
-    const [nearbyPlayers, onEvent] = useReducer(nearbyPlayerReducer, {});
+    const {subject} = useEventBus();
+    const [nearbyState, onEvent] = useReducer(nearbyEventReducer, {areaId: undefined, nearby: {}});
 
     useEffect(() => {
-        const subscripton = subject.pipe(filter(isMovementEvent))
+        function isReleventEvent(event) {
+            const eventNames = ['entered-area', 'exited-area'];
+            return eventNames.includes(event.name);
+        }
+
+        const subscripton = subject.pipe(filter(isReleventEvent))
             .subscribe({next: onEvent});
         return () => subscripton.unsubscribe();
-    }, [subject]);
+    }, [player.id, subject]);
 
     return (
-        <ul>
-            {Object.values(nearbyPlayers).map(({id, x, y}) => <li key={id}>{id} ({x},{y})</li>)}
-        </ul>
+        <div>
+            <h3>Nearby {nearbyState.areaId}</h3>
+            <ul>
+                {Object.values(nearbyState.nearby).map(actor => <li key={actor.id}>{actor.name}</li>)}
+            </ul>
+        </div>
     );
 }
