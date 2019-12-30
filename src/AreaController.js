@@ -24,7 +24,6 @@ export default function AreaController() {
         function next({areaId, actor}) {
             const areaActors = actorsByArea.current[areaId];
             areaActors.set(actor.id, actor);
-            console.log('area actors', areaId, areaActors);
 
             const area = areas.find(({id}) => id === areaId);
             if (area) {

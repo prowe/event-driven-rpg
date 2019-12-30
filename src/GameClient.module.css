@@ -1,0 +1,11 @@
+
+.gameClient {
+    display: grid;
+    grid-template-areas:
+        "header header"
+        "Nearby Exits";
+}
+
+.header {
+    grid-area: header;
+}

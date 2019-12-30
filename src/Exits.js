@@ -52,7 +52,7 @@ export default function Exits({player}) {
     }, [subject, setExitState, player]);
 
     return (
-        <div>
+        <div style={{gridArea: 'Exits'}}>
             <h3>Exits</h3>
             <ul>
                 {exitState.exits.map((exit, index) => <ExitRow key={index} areaId={exitState.areaId} exit={exit} player={player} />)}

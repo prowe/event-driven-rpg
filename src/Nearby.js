@@ -1,62 +1,78 @@
-import React, { useEffect, useContext, useReducer, useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import {useEventBus} from './EventContext';
 import {filter} from 'rxjs/operators';
 
+function reduceCurrentPlayerEvent(currentState, event) {
+    switch (event.name) {
+    case 'entered-area':
+        return {
+            ...currentState,
+            areaId: event.areaId
+        };
+    case 'exited-area':
+        return {
+            ...currentState,
+            nearby: currentState.nearby
+                .filter(e => e.areaId !== event.areaId)
+        };
+    case 'observed-area':
+        const dedupMap = new Map();
+        currentState.nearby.forEach(entry => {
+            dedupMap.set(entry.id, entry);
+        });
+        event.nearby.forEach(entry => {
+            dedupMap.set(entry.id, {
+                ...entry,
+                areaId: event.areaId
+            });
+        });
+
+        return {
+            ...currentState,
+            nearby: [...dedupMap.values()]
+        };
+    default:
+        return currentState;
+    }
+}
+
+function reduceOtherEvent(currentState, event) {
+    if (event.areaId !== currentState.areaId) {
+        return currentState;
+    }
+    switch (event.name) {
+        case 'entered-area':
+            const entry = {
+                ...event.actor,
+                areaId: event.areaId
+            };
+
+            return {
+                ...currentState,
+                nearby: currentState.nearby
+                    .filter(e => e.id !== entry.id)
+                    .concat([entry])
+            };
+        case 'exited-area':
+            return {
+                ...currentState,
+                nearby: currentState.nearby
+                    .filter(e => e.id !== event.actor.id)
+            };
+        default:
+            return currentState;
+    }
+}
 
 export default function Nearby({player}) {
     function nearbyEventReducer(currentState, event) {
-        // FIXME: lot of odd race conditions
-        const {actor, areaId, name} = event;
-        if (actor.id === player.id) {
-            // if (currentState.currentAreaId !== event.areaId
-            //     && name === 'entered-area') {
-            //     return {
-            //         areaId,
-            //         nearby: {
-            //             [actor.id]: actor
-            //         }
-            //     };
-            // }
-            if (name === 'observed-area') {
-                const nearby = event.nearby.reduce((nearby, actor) => {
-                    return {
-                        ...nearby,
-                        [actor.id]: actor
-                    };
-                }, {});
-                console.log(player.id, 'observed: ', nearby)
-                return {
-                    areaId,
-                    nearby
-                };
-            }
-        } else {
-            if (currentState.areaId === areaId) {
-                if (name === 'entered-area') {
-                    return {
-                        areaId,
-                        nearby: {
-                            ...currentState.nearby,
-                            [actor.id]: actor
-                        }
-                    };
-                }
-                if (name === 'exited-area') {
-                    const nearby = currentState.nearby;
-                    delete nearby[actor.id];
-                    return {
-                        areaId,
-                        nearby
-                    };
-                }
-            }
-        }
-
-        return currentState;
+        return event.actor.id === player.id
+            ? reduceCurrentPlayerEvent(currentState, event)
+            : reduceOtherEvent(currentState, event);
     }
 
     const {subject} = useEventBus();
-    const [nearbyState, onEvent] = useReducer(nearbyEventReducer, {areaId: undefined, nearby: {}});
+    const [nearbyState, onEvent] = useReducer(nearbyEventReducer, {areaId: undefined, nearby: []});
 
     useEffect(() => {
         function isReleventEvent(event) {
@@ -70,10 +86,10 @@ export default function Nearby({player}) {
     }, [player.id, subject]);
 
     return (
-        <div>
+        <div style={{gridArea: 'Nearby'}}>
             <h3>Nearby {nearbyState.areaId}</h3>
             <ul>
-                {Object.values(nearbyState.nearby).map(actor => <li key={actor.id}>{actor.name}</li>)}
+                {nearbyState.nearby.map(entry => <li key={entry.id}>{entry.name}</li>)}
             </ul>
         </div>
     );
