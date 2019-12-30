@@ -11,7 +11,8 @@
     "react-dom": "^16.12.0",
     "react-scripts": "3.3.0",
     "rxjs": "^6.5.3",
-    "shortid": "^2.2.15"
+    "shortid": "^2.2.15",
+    "typescript": "^3.7.4"
   },
   "scripts": {
     "start": "react-scripts start",

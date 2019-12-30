@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {useEventBus} from './EventContext';
+import {useEventBus} from './EventContext.tsx';
 import styles from './Timeline.module.css';
 
 export default function Timeline() {

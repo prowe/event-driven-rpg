@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import {EventBusProvider} from './EventContext';
+import {EventBusProvider} from './EventContext.tsx';
 import Timeline from './Timeline';
 import GameClient from './GameClient';
 import Chance from 'chance';
 import shortid from 'shortid';
-import AreaController from './AreaController';
+import AreaController from './AreaController.tsx';
 const chance = new Chance();
 
 function App() {

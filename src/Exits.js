@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useEventBus } from './EventContext';
+import { useEventBus } from './EventContext.tsx';
 import { filter } from 'rxjs/operators';
 
 function ExitRow({areaId, exit, player}) {

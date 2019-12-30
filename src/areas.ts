@@ -1,3 +1,14 @@
+export interface ExitDefinition {
+    readonly to: string;
+    readonly label: string;
+}
+
+export interface AreaDefinition {
+    readonly id: string;
+    readonly title: string;
+    readonly description: string;
+    readonly exits: ExitDefinition[];
+}
 
 export default [
     {

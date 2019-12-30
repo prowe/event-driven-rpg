@@ -2,8 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useEventBus } from './EventContext';
 import areas from './areas';
 import { filter } from 'rxjs/operators';
+import GameEvent, { ActorIdentity } from './GameEvent';
+import { Observable } from 'rxjs';
 
-function buildActorsByAreaMap() {
+interface ActorsByArea {
+    [key: string]: Map<string, ActorIdentity>
+}
+
+function buildActorsByAreaMap(): ActorsByArea {
     return areas.reduce((actorsByArea, area) => {
         return {
             ...actorsByArea,
@@ -17,11 +23,11 @@ export default function AreaController() {
     const actorsByArea = useRef(buildActorsByAreaMap());
 
     useEffect(() => {
-        function isEnterAreaEvent(event) {
+        function isEnterAreaEvent(event: GameEvent) {
             return event.name === 'entered-area';
         }
 
-        function next({areaId, actor}) {
+        function next({areaId, actor}: GameEvent) {
             const areaActors = actorsByArea.current[areaId];
             areaActors.set(actor.id, actor);
 
@@ -32,28 +38,28 @@ export default function AreaController() {
                     actor,
                     areaId,
                     area,
-                    nearby: [...areaActors.values()]
+                    nearby: Array.from(areaActors.values())
                 });
             }
         }
 
-        const subscription = subject
+        const subscription = (subject as Observable<GameEvent>)
             .pipe(filter(isEnterAreaEvent))
             .subscribe({next});
         return () => subscription.unsubscribe();
     }, [subject, broadcastEvent]);
 
     useEffect(() => {
-        function isExitedAreaEvent(event) {
+        function isExitedAreaEvent(event: GameEvent) {
             return event.name === 'exited-area';
         }
 
-        function next({areaId, actor}) {
+        function next({areaId, actor}: GameEvent) {
             const areaActors = actorsByArea.current[areaId];
             areaActors.delete(actor.id);
         }
 
-        const subscription = subject
+        const subscription = (subject as Observable<GameEvent>)
             .pipe(filter(isExitedAreaEvent))
             .subscribe({next});
         return () => subscription.unsubscribe();

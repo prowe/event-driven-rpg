@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import {useEventBus} from './EventContext';
+import {useEventBus} from './EventContext.tsx';
 import Exits from './Exits';
 import Nearby from './Nearby';
 import styles from './GameClient.module.css';
