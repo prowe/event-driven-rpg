@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import {useEventBus} from './EventContext';
 import Exits from './Exits';
 import Nearby from './Nearby';
+import PlayerConsole from './PlayerConsole';
 import styles from './GameClient.module.css';
 
 export default function GameClient({player}) {
@@ -22,6 +23,7 @@ export default function GameClient({player}) {
         <div className={styles.gameClient}>
             <h2 className={styles.header}>{player.name} ({player.id})</h2>
             <Nearby player={player} />
+            <PlayerConsole player={player} />
             <Exits player={player} />
         </div>
     );

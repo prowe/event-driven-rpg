@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {EventBusProvider} from './EventContext';
-import Timeline from './Timeline';
+import GlobalTimeline from './GlobalTimeline';
 import GameClient from './GameClient';
 import Chance from 'chance';
 import shortid from 'shortid';
@@ -22,7 +22,7 @@ function App() {
   return (
     <div className="App">
       <EventBusProvider>
-        <Timeline />
+        <GlobalTimeline />
         <AreaController />
 
         <button onClick={addPlayer}>Add Player</button>

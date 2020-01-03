@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {useEventBus} from './EventContext';
-import styles from './Timeline.module.css';
+import styles from './GlobalTimeline.module.css';
 
-export default function Timeline() {
+export default function GlobalTimeline() {
     const {subject} = useEventBus();
     const [events, setEvents] = useState([]);
 
