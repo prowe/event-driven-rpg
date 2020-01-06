@@ -5,6 +5,7 @@ import GameClient from './GameClient';
 import Chance from 'chance';
 import shortid from 'shortid';
 import AreaController from './AreaController';
+import ItemController from './ItemController';
 const chance = new Chance();
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
     <div className="App">
       <EventBusProvider>
         <GlobalTimeline />
+        <ItemController />
         <AreaController />
 
         <button onClick={addPlayer}>Add Player</button>

@@ -2,6 +2,7 @@ import { filter } from "rxjs/operators";
 
 class Area {
     actorsInArea = new Map();
+    itemsInArea = new Map();
 
     constructor(info) {
         this.areaInfo = info;
@@ -10,15 +11,31 @@ class Area {
     subscribe = (subject, broadcastEvent) => {
         // FIXME: how do we get access to this better?
         this.broadcastEvent = broadcastEvent;
-        return subject.pipe(filter(this.isAreaEvent))
+        const subscription = subject.pipe(filter(this.isAreaEvent))
             .subscribe(this.onAreaEvent);
+        this.dropInitialItems();
+        return subscription;
+    }
+
+    dropInitialItems = () => {
+        if (!this.areaInfo.items) {
+            return;
+        }
+
+        this.areaInfo.items
+            .map(item => ({
+                name: 'item-dropped',
+                areaId: this.areaInfo.id,
+                item
+            }))
+            .forEach(this.broadcastEvent);
     }
 
     isAreaEvent = (event) =>
         event.areaId === this.areaInfo.id &&
-        ['entered-area', 'exited-area'].includes(event.name);
+        ['entered-area', 'exited-area', 'item-dropped', 'item-obtained'].includes(event.name);
 
-    onAreaEvent = ({name, actor}) => {
+    onAreaEvent = ({name, actor, item}) => {
         switch (name) {
             case 'entered-area':
                 this.actorsInArea.set(actor.id, actor);
@@ -27,12 +44,22 @@ class Area {
                     name: 'observed-area',
                     actor,
                     areaId: this.areaInfo.id,
-                    area: this.areaInfo,
-                    nearby: [...this.actorsInArea.values()]
+                    area: {
+                        ...this.areaInfo,
+                        items: undefined
+                    },
+                    nearby: [...this.actorsInArea.values()],
+                    items: [...this.itemsInArea.values()]
                 });
                 break;
             case 'exited-area':
                 this.actorsInArea.delete(actor.id);
+                break;
+            case 'item-dropped':
+                this.itemsInArea.set(item.id, item);
+                break;
+            case 'item-obtained':
+                this.itemsInArea.delete(item.id)
                 break;
             default:
                 break;
@@ -53,6 +80,12 @@ export default function getAreas() {
                 {
                     to: 'prison-hallway',
                     label: 'Open Cell Door'
+                }
+            ],
+            items: [
+                {
+                    id: 'nails-001',
+                    name: 'Rusty Nails'
                 }
             ]
         }),
