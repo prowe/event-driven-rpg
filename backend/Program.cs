@@ -26,7 +26,9 @@ namespace backend
                 })
                 .UseOrleans(siloBuilder =>
                 {
+                    siloBuilder.AddMemoryGrainStorage("PubSubStore");
                     siloBuilder.UseLocalhostClustering();
+                    siloBuilder.AddSimpleMessageStreamProvider("default");
                 });
     }
 }
