@@ -5,22 +5,10 @@ import { filter } from 'rxjs/operators';
 function reduceItemEvent(inventory, event) {
     const item = event.item;
     switch (event.name) {
+        case 'item-given':
         case 'item-dropped':
             return inventory
                 .filter(e => e.id !== item.id);
-        case 'item-given':
-            if (event.iAmActor && !event.iamTarget) {
-                // i am giving it away
-                return inventory
-                    .filter(e => e.id !== item.id);
-            }
-            if (!event.iAmActor && event.iamTarget) {
-                //it is being given to me
-                return inventory
-                    .filter(e => e.id !== item.id)
-                    .concat([item]);
-            }
-            return inventory;
         case 'item-obtained':
             return inventory
                 .filter(e => e.id !== item.id)
@@ -69,16 +57,7 @@ export default function PlayerInventory({player}) {
     }, [subject, player.id]);
 
     useEffect(() => {
-        function isItemGivenToMeEvent(event) {
-            return event.name === 'item-given'
-                && event.target
-                && event.target.id === player.id;
-        }
-
         function isItemEvent(event) {
-            if (isItemGivenToMeEvent(event)) {
-                return true;
-            }
             return ['item-dropped', 'item-obtained', 'item-given'].includes(event.name)
                 && event.actor.id === player.id;
         }

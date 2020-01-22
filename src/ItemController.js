@@ -26,6 +26,12 @@ export default function ItemController() {
                         currentOwner: target,
                         currentAreaId: areaId
                     });
+                    broadcastEvent({
+                        name: 'item-obtained',
+                        areaId,
+                        actor: target,
+                        item
+                    });
                     break;
                 case 'try-pickup-item':
                     const itemStatus = itemStatusById.current.get(item.id);
@@ -50,7 +56,7 @@ export default function ItemController() {
         }
 
         function isItemEvent(event) {
-            return ['item-dropped', 'try-pickup-item'].includes(event.name);
+            return ['item-dropped', 'try-pickup-item', 'item-given'].includes(event.name);
         }
         subject.pipe(filter(isItemEvent))
             .subscribe({next: onItemEvent})
