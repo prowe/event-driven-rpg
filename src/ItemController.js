@@ -8,7 +8,7 @@ export default function ItemController() {
 
     useEffect(() => {
         function onItemEvent(event) {
-            const {actor, item, areaId} = event;
+            const {actor, item, areaId, target} = event;
 
             switch(event.name) {
                 case 'item-dropped':
@@ -16,6 +16,14 @@ export default function ItemController() {
                         id: item.id,
                         name: item.name,
                         currentOwner: undefined,
+                        currentAreaId: areaId
+                    });
+                    break;
+                case 'item-given':
+                    itemStatusById.current.set(item.id, {
+                        id: item.id,
+                        name: item.name,
+                        currentOwner: target,
                         currentAreaId: areaId
                     });
                     break;

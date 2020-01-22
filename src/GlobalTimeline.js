@@ -9,10 +9,7 @@ export default function GlobalTimeline() {
     useEffect(() => {
         function appendEvent(event) {
             setEvents((currentEvents) => {
-                const newEvents = [...currentEvents, event]
-                if (newEvents.length > 10) {
-                    newEvents.pop();
-                }
+                const newEvents = [...currentEvents, event].splice(-10);
                 return newEvents;
             })
         }

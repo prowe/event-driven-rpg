@@ -1,6 +1,7 @@
 import React, { useEffect, useReducer } from 'react';
 import {useEventBus} from './EventContext';
 import {filter} from 'rxjs/operators';
+import styles from './Nearby.module.css';
 
 function reduceCurrentPlayerEvent(currentState, event) {
     switch (event.name) {
@@ -31,7 +32,7 @@ function reduceCurrentPlayerEvent(currentState, event) {
             ...currentState,
             nearby: [...dedupMap.values()]
         };
-    case 'targeted':
+    case 'changed-target':
         return {
             ...currentState,
             target: event.target
@@ -81,7 +82,7 @@ export default function Nearby({player}) {
 
     useEffect(() => {
         function isReleventEvent(event) {
-            const eventNames = ['entered-area', 'exited-area', 'observed-area', 'targeted'];
+            const eventNames = ['entered-area', 'exited-area', 'observed-area', 'changed-target'];
             return eventNames.includes(event.name);
         }
 
@@ -96,24 +97,25 @@ export default function Nearby({player}) {
             <ul>
                 {nearbyState.nearby.map(entry => {
                     const isTarget = nearbyState.target && nearbyState.target.id === entry.id;
-                    function onTarget() {
+                    function toggleTarget() {
+                        const target = isTarget ? undefined : {
+                            id: entry.id,
+                            name: entry.name
+                        };
                         broadcastEvent({
-                            name: 'targeted',
+                            name: 'changed-target',
                             actor: {
                                 id: player.id,
                                 name: player.name
                             },
                             areaId: nearbyState.areaId,
-                            target: {
-                                id: entry.id,
-                                name: entry.name
-                            }
+                            target
                         });
                     }
                     return (
                         <li key={entry.id}>
                             {entry.name}
-                            {isTarget ? <span>Target</span> : <button onClick={onTarget}>Target</button>}
+                            <button className={isTarget && styles.targetedTargetButton} onClick={toggleTarget}>Target</button>
                         </li>
                     );
                 })}

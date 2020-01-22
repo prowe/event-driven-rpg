@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useReducer } from 'react';
+import React, { useRef, useEffect, useReducer, useState } from 'react';
 import { useEventBus } from './EventContext';
 import { filter } from 'rxjs/operators';
 
@@ -8,6 +8,19 @@ function reduceItemEvent(inventory, event) {
         case 'item-dropped':
             return inventory
                 .filter(e => e.id !== item.id);
+        case 'item-given':
+            if (event.iAmActor && !event.iamTarget) {
+                // i am giving it away
+                return inventory
+                    .filter(e => e.id !== item.id);
+            }
+            if (!event.iAmActor && event.iamTarget) {
+                //it is being given to me
+                return inventory
+                    .filter(e => e.id !== item.id)
+                    .concat([item]);
+            }
+            return inventory;
         case 'item-obtained':
             return inventory
                 .filter(e => e.id !== item.id)
@@ -15,12 +28,33 @@ function reduceItemEvent(inventory, event) {
         default:
             return inventory;
     }
+}
 
+function useCurrentTarget(subject, playerId) {
+    const [currentTarget, setCurrentTarget] = useState();
+
+    useEffect(() => {
+        function isPlayerTargetEvent(event) {
+            return ['changed-target'].includes(event.name)
+                && event.actor.id === playerId;
+        }
+
+        function next(event) {
+            setCurrentTarget(event.target);
+        }
+
+        const subscription = subject.pipe(filter(isPlayerTargetEvent))
+            .subscribe({next});
+        return () => subscription.unsubscribe();
+    }, [subject, playerId]);
+
+    return currentTarget;
 }
 
 export default function PlayerInventory({player}) {
     const {subject, broadcastEvent} = useEventBus();
     const currentArea = useRef();
+    const currentTarget = useCurrentTarget(subject, player.id);
     const [inventory, onInventoryEvent] = useReducer(reduceItemEvent, []);
 
     useEffect(() => {
@@ -35,13 +69,30 @@ export default function PlayerInventory({player}) {
     }, [subject, player.id]);
 
     useEffect(() => {
+        function isItemGivenToMeEvent(event) {
+            return event.name === 'item-given'
+                && event.target
+                && event.target.id === player.id;
+        }
+
         function isItemEvent(event) {
-            return ['item-dropped', 'item-obtained'].includes(event.name)
+            if (isItemGivenToMeEvent(event)) {
+                return true;
+            }
+            return ['item-dropped', 'item-obtained', 'item-given'].includes(event.name)
                 && event.actor.id === player.id;
         }
 
+        function next(event) {
+            onInventoryEvent({
+                ...event,
+                iAmActor: event.actor.id === player.id,
+                iamTarget: event.target && event.target.id === player.id
+            });
+        }
+
         const subscription = subject.pipe(filter(isItemEvent))
-            .subscribe({next: onInventoryEvent});
+            .subscribe({next});
         return () => subscription.unsubscribe();
     }, [subject, player.id]);
 
@@ -64,7 +115,30 @@ export default function PlayerInventory({player}) {
                             }
                         });
                     }
-                    return <li key={item.id}>{item.name} <button onClick={drop}>Drop</button></li>
+
+                    function give() {
+                        broadcastEvent({
+                            name: 'item-given',
+                            areaId: currentArea.current,
+                            actor: {
+                                id: player.id,
+                                name: player.name
+                            },
+                            item: {
+                                id: item.id,
+                                name: item.name
+                            },
+                            target: currentTarget
+                        });
+                    }
+
+                    return (
+                        <li key={item.id}>
+                            {item.name}
+                            <button onClick={drop}>Drop</button>
+                            {<button onClick={give} disabled={!currentTarget}>Give</button>}
+                        </li>
+                    );
                 })}
             </ul>
         </div>
