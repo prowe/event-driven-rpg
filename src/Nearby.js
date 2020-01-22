@@ -31,6 +31,11 @@ function reduceCurrentPlayerEvent(currentState, event) {
             ...currentState,
             nearby: [...dedupMap.values()]
         };
+    case 'targeted':
+        return {
+            ...currentState,
+            target: event.target
+        };
     default:
         return currentState;
     }
@@ -71,12 +76,12 @@ export default function Nearby({player}) {
             : reduceOtherEvent(currentState, event);
     }
 
-    const {subject} = useEventBus();
+    const {subject, broadcastEvent} = useEventBus();
     const [nearbyState, onEvent] = useReducer(nearbyEventReducer, {areaId: undefined, nearby: []});
 
     useEffect(() => {
         function isReleventEvent(event) {
-            const eventNames = ['entered-area', 'exited-area', 'observed-area'];
+            const eventNames = ['entered-area', 'exited-area', 'observed-area', 'targeted'];
             return eventNames.includes(event.name);
         }
 
@@ -89,7 +94,29 @@ export default function Nearby({player}) {
         <div style={{gridArea: 'Nearby'}}>
             <h3>Nearby {nearbyState.areaId}</h3>
             <ul>
-                {nearbyState.nearby.map(entry => <li key={entry.id}>{entry.name}</li>)}
+                {nearbyState.nearby.map(entry => {
+                    const isTarget = nearbyState.target && nearbyState.target.id === entry.id;
+                    function onTarget() {
+                        broadcastEvent({
+                            name: 'targeted',
+                            actor: {
+                                id: player.id,
+                                name: player.name
+                            },
+                            areaId: nearbyState.areaId,
+                            target: {
+                                id: entry.id,
+                                name: entry.name
+                            }
+                        });
+                    }
+                    return (
+                        <li key={entry.id}>
+                            {entry.name}
+                            {isTarget ? <span>Target</span> : <button onClick={onTarget}>Target</button>}
+                        </li>
+                    );
+                })}
             </ul>
         </div>
     );
