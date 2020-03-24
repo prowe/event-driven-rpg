@@ -16,7 +16,7 @@ namespace backend
 
         public async Task SetAreaAttributes(SetAreaAttributesCommand command)
         {
-            logger.LogInformation($"SetAreaAttributes: {command}");
+            logger.LogCritical($"SetAreaAttributes: {command}");
         }
     }
 }
